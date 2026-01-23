@@ -6,6 +6,7 @@ T = 10;
 freq_pos = 20;      % 位置环控制频率 (Hz)
 freq_att = 100;    % 姿态环控制频率 (Hz)
 freq_spd = 1000;    % 角速度环控制频率 (Hz)
+ifdiff = 1;        % 是否计算导数
 
 % 期望输入
 ax = 1;
@@ -23,6 +24,7 @@ state = zeros(12,N);
 u = zeros(4,N);     % 期望输入
 u = [2*cos(tspan);2*sin(tspan+pi/4);0.5*ones(1,N);0.5*ones(1,N)];
 eta_d = zeros(3,N); % 期望姿态
+eta_d_dot_rec = zeros(3,N); % 期望姿态导数
 force_d = zeros(1,N);   % 期望升力
 w_d = zeros(3,N);   % 期望角速度
 T_d = zeros(3,N);   % 期望力矩
@@ -41,21 +43,22 @@ for k = 1:N
         eta_d(:,k) = [phi_d;theta_d;psi_d];
         force_d(k) = GQUAV_Controller_ComputeThrust(u(1,k),u(2,k),u(3,k),m);
         % 计算导数
-        if k ~= 1
-        eta_d_dot = (eta_d(:,k) - last_eta_d)*freq_pos;
+        if k ~= 1 && ifdiff
+            eta_d_dot = (eta_d(:,k) - last_eta_d)*freq_pos;
         else
             eta_d_dot = 0;
         end
         last_eta_d = eta_d(:,k);
+        eta_d_dot_rec(:,k) = eta_d_dot;
     else
         u(:,k) = u(:,k-1);
         eta_d(:,k) = eta_d(:,k-1);
         force_d(k) = force_d(k-1);
+        eta_d_dot_rec(:,k) = eta_d_dot_rec(:,k-1);
     end
     %% 姿态环
     if mod(tspan(k),1/freq_att) == 0
         % 数据准备
-        eta_d_dot = (eta_d(:,k)-eta_d(:,max(k-1/freq_att/dt,1)))*freq_att;
         eta = [UAV1.States.phi;UAV1.States.theta;UAV1.States.psi];  % 直接测量
         % 控制量
         w_d(:,k) = GQUAV_Controller_AttitudeLoop(eta_d(:,k),eta_d_dot,eta);
@@ -118,3 +121,7 @@ figure(6)
 plot(tspan,Omega)
 title('Speed of rotors')
 legend('\Omega_1','\Omega_2','\Omega_3','\Omega_4')
+
+figure(7)
+plot(tspan,eta_d_dot_rec)
+title('eta_d dot')
