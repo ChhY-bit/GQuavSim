@@ -1,10 +1,12 @@
 # GQuavSim - 通用四旋翼无人机仿真模型 (MATLAB & ROS2)
+
 **项目作者:** C.Yang （北京理工大学自动化学院，*预测智能控制实验室 PI-Control Lab*）
 **联系邮箱:** [ych_0872@126.com](mailto:ych_0872@126.com)
 **项目版本:** 1.0
 **最近更新:** 2026-1-23
 
 ## 1 项目简介
+
 - 本项目是一个四旋翼无人机通用仿真模型，旨在利用ROS2便捷的通信管理与指令发布机制，对基于MATLAB开发的控制算法实施便捷部署与快速验证。
 - 提供了低速动态下尽可能接近真实的四旋翼无人机正向动力学模型。可将<u>*非对称惯性张量*、*陀螺效应*、*空气阻尼*、*外界扰动*</u>等通常被简化或忽略的因素纳入考虑范围，以更真实地模拟四旋翼无人机动态。
 - 针对不同的控制层次需求，提供了以下几种控制输入接口：
@@ -22,6 +24,7 @@
 
 
 ## 2 项目结构
+
 ### 2.1 核心文件
 
 ### 2.1 使用示例
@@ -29,10 +32,15 @@
 ### 2.2 通用模板
 
 ## 3 核心文件及其说明
+
 ### 3.1 动态模型类
+
 动态模型类文件主要负责实现四旋翼无人机真实运动模拟。
+
 #### 3.1.1 GQUAV_Model_UAV.m
+
 ##### 概述
+
 - <span style="color: blue;">GQUAV_Model_UAV.m</span> 是一个MATLAB句柄类文件
 - 包含属性：
   - Params：无人机参数结构体
@@ -108,6 +116,7 @@
     </span>
 
 #### 3.1.2 GQUAV_Model_GetDefaultParams.m
+
 - <span style="color: blue;">GQUAV_Model_GetDefaultParams.m</span> 是一个MATLAB函数文件
 - 用于在用户输入缺省时获取一组默认的无人机参数
 - 输入参数：无
@@ -117,8 +126,11 @@
 
 
 ### 3.2 控制接口类
+
 控制接口类文件主要负责实现不同控制层次的输入接口。
+
 #### 3.2.1 GQUAV_Controller_ComputeAttitude.m
+
 - <span style="color: blue;">GQUAV_Controller_ComputeAttitude.m</span> 是一个MATLAB函数文件
 - 根据期望的加速度$(a_x,a_y,a_z)$与偏航角$\psi_d$计算期望的滚转角$\phi_d$与俯仰角$\theta_d$，计算公式为
 $$
@@ -134,7 +146,9 @@ $$
 - 输出参数：<span style="color:green">(phi_d,theta_d)</span>
   - <span style="color: red;">phi_d</span>：期望的滚转角，单位：$rad$
   - <span style="color: red;">theta_d</span>：期望的俯仰角，单位：$rad$
+
 #### 3.2.2 GQUAV_Controller_ComputeThrust.m
+
 - <span style="color: blue;">GQUAV_Controller_ComputeThrust.m</span> 是一个MATLAB函数文件
 - 根据期望的加速度$(a_x,a_y,a_z)$与机体质量$m$计算期望的推力$F$，计算公式为
 $$
@@ -161,7 +175,9 @@ $$其中，$K_\omega$为角速度反馈增益矩阵，需设计为对称正定�
   - <span style="color: red;">T_x,T_y,T_z</span>：期望的机体坐标系下的旋转力矩，单位：$N\cdot m$
 - 内部参数：<span style="color:green">(K_w)</span>
   - <span style="color: red;">K_w</span>：角速度反馈增益矩阵
+
 #### 3.3.4 GQUAV_Controller_AttitudeLoop.m
+
 - <span style="color: blue;">GQUAV_Controller_AttitudeLoop.m</span> 是一个MATLAB函数文件
 - 依据期望的姿态$\eta_d=[\phi_d,\theta_d,\psi_d]^\top$与当前的反馈信息$\eta=[\phi,\theta,\psi]^\top$以及微分前馈量$\dot{\eta}_d=[\dot{\phi}_d,\dot{\theta}_d,\dot{\psi}_d]^\top$计算期望的机体角速度向量$\omega_d=[\omega_{x,d},\omega_{y,d},\omega_{z,d}]^\top$，控制律设计为状态反馈-微分前馈复合形式：
 $$
@@ -178,6 +194,7 @@ $$其中，$K_\eta$为姿态反馈增益矩阵，需设计为对称正定的（�
   - <span style="color: red;">K_eta</span>：姿态反馈增益矩阵
 
 #### 3.3.5 GQUAV_Controller_Allocate.m
+
 - <span style="color: blue;">GQUAV_Controller_Allocate.m</span> 是一个MATLAB函数文件
 - 利用分配矩阵将期望升力$F$与期望力矩$T_x,T_y,T_z$映射为旋翼电机转速，分配公式为
 $$
@@ -211,7 +228,9 @@ $$ 矩阵E**满秩**且元素均为1或-1，具体形式与电机旋转方向及
   - <span style="color: red;">C_A</span>：升力系数，单位：$N/(rad/s)^2$
   - <span style="color: red;">L</span>：四旋翼的半长轴（机臂长），单位：$m$
   - <span style="color: red;">C_R</span>：力矩系数，单位：$N \cdot m/(rad/s)^2$
+
 ### 3.3 仿真环境类
+
 仿真环境类文件主要负责与ROS2的联合协同。
 
 ### 3.4 辅助功能类
@@ -229,6 +248,7 @@ $$ 矩阵E**满秩**且元素均为1或-1，具体形式与电机旋转方向及
     0 & \sin\phi & \cos\phi
     \end{bmatrix}
     $$
+
 #### 3.4.2 GQUAV_Utils_roty.m
 - <span style="color: blue;">GQUAV_Utils_roty.m</span> 是一个MATLAB函数文件
 - 用于计算绕y轴的旋转矩阵
