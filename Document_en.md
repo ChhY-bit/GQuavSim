@@ -4,4 +4,9 @@
 **Version:** 1.0
 **Last update:** 2026-1-22
 
-## Description
+## 1 Description
+
+## 2 Structure of the Project
+
+## 3 Core Files and Illustrations
+
