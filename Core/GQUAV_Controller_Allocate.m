@@ -1,5 +1,5 @@
 function [Omega_1,Omega_2,Omega_3,Omega_4]=GQUAV_Controller_Allocate(F,Tx,Ty,Tz)
-% QUAVS_Controller_Allocate
+% GQUAV_Controller_Allocate
 % 输入控制量F,Tx,Ty,Tz
 % 输出分配后的电机转速
 

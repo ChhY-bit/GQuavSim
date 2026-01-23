@@ -1,5 +1,5 @@
 function [Tx,Ty,Tz]=GQUAV_Controller_AngleSpeedLoop(w_d,w,J)
-% QUAVS_Controller_SpeedLoop
+% GQUAV_Controller_AngleSpeedLoop
 % 输入期望角速度w_d及实际角速度w、机体惯量矩阵J
 % 输出控制力矩Tx,Ty,Tz
     err = w_d - w;

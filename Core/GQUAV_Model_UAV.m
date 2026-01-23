@@ -21,13 +21,13 @@ classdef GQUAV_Model_UAV < handle
     end
 
     methods
-        function obj = QUAV(params,states_init)
+        function obj = GQUAV_Model_UAV(params,states_init)
             % QUAV 构造此类的实例
             %   创建无人机示例，参数初始化
             if nargin == 0
                 params = GQUAV_Model_GetDefaultParams();
                 states_init = zeros(12,1);
-            elseif length(params(:)) ~= 15
+            elseif length(params(:)) ~= 18
                 error('Wrong Number of Parameters!')
             end
             obj.Params.C_A = params(1);

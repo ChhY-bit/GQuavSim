@@ -1,5 +1,5 @@
 function F_d=GQUAV_Controller_ComputeThrust(ax,ay,az,m)
-% QUAVS_Controller_ComputeForc
+% GQUAV_Controller_ComputeThrust
 % 设质量为m，输入期望加速度ax,ay,az
     g = 9.81;
 % 计算得出期望的升力大小F_d
