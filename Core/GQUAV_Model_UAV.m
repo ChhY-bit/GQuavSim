@@ -26,6 +26,7 @@ classdef GQUAV_Model_UAV < handle
         CmdSub
         CmdData
         ROS2Node
+        LatestCmdMsg  % 用于主动轮询最新消息
     end
 
     methods
@@ -134,27 +135,24 @@ classdef GQUAV_Model_UAV < handle
         
         function InitROS2(obj)
             % 初始化ROS2节点
-            obj.CmdData.ax = 0;
-            obj.CmdData.ay = 0;
-            obj.CmdData.az = 0;
-            obj.CmdData.psi_d = 0;
-            
+            obj.CmdData = [0;0;0;0];        % 4维数组，含义因控制方式而异
+            obj.LatestCmdMsg = ros2message('std_msgs/Float64MultiArray');  % 存储最新消息
+
             % 创建ROS2节点
             obj.ROS2Node = ros2node('uav_node');
-            
+
             % 创建发布器 - 发布无人机状态
             obj.StatePub = ros2publisher(obj.ROS2Node, 'uav_state', 'std_msgs/Float64MultiArray');
-            
+
             % 创建订阅器 - 接收加速度和偏航角指令(4维数组)
+            % 注意：在并行环境中，回调可能不工作，使用LatestMessage方式
             obj.CmdSub = ros2subscriber(obj.ROS2Node, 'uav_cmd', 'std_msgs/Float64MultiArray', @(src,msg)obj.CmdCallback(src,msg));
         end
         
         function CmdCallback(obj, ~, msg)
-            % 指令回调函数(4维数组：ax, ay, az, psi_d)
-            obj.CmdData.ax = msg.data(1);
-            obj.CmdData.ay = msg.data(2);
-            obj.CmdData.az = msg.data(3);
-            obj.CmdData.psi_d = msg.data(4);
+            % 指令回调函数(4维数组：含义因控制方式而异)
+            obj.CmdData = msg.data;
+            obj.LatestCmdMsg = msg;  % 存储消息用于轮询
         end
         
         function PublishState(obj)
