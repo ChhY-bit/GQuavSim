@@ -2,13 +2,13 @@ clear,clc
 addpath(fullfile(fileparts(mfilename('fullpath')), '..', 'Core'));
 %% 仿真参数
 dt = 1e-4;
-T = 10;
+T = 20;
 %% 控制参数
 freq_pub = 10;      % 发布频率 (Hz)
 freq_pos = 20;      % 位置环控制频率 (Hz)
 freq_att = 100;    % 姿态环控制频率 (Hz)
 freq_rate = 1000;    % 角速度环控制频率 (Hz)
-ifdiff = 0;        % 是否计算导数
+ifdiff = 1;        % 是否计算导数
 %% 初始化
 tspan = 0:dt:T;
 N = length(tspan);
