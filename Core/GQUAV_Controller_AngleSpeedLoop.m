@@ -4,7 +4,7 @@ function [Tx,Ty,Tz]=GQUAV_Controller_AngleSpeedLoop(w_d,w,J)
 % 输出控制力矩Tx,Ty,Tz
     err = w_d - w;
     % 控制参数
-    K_w = diag([20,20,20]); % 应设计为正定的
+    K_w = diag([5,5,5]); % 应设计为正定的
     
     % 控制律
     T = J*K_w*err;
