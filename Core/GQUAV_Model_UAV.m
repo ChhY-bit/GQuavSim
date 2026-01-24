@@ -69,7 +69,7 @@ classdef GQUAV_Model_UAV < handle
             obj.States.w_y = states_init(11);
             obj.States.w_z = states_init(12);
             
-            % 初始化ROS2节点
+            % 初始化ROS2节点(对象创建时自动启动)
             obj.InitROS2();
         end
 
@@ -128,8 +128,8 @@ classdef GQUAV_Model_UAV < handle
             obj.States.theta = new_states(11);
             obj.States.psi = new_states(12);
             
-            % 发布状态信息
-            obj.PublishState();
+            % 发布状态信息（一般在外部程序发布，而不是内部）
+            % obj.PublishState();
         end
         
         function InitROS2(obj)
@@ -143,39 +143,30 @@ classdef GQUAV_Model_UAV < handle
             obj.ROS2Node = ros2node('uav_node');
             
             % 创建发布器 - 发布无人机状态
-            obj.StatePub = ros2publisher(obj.ROS2Node, 'uav_state', 'geometry_msgs/PoseStamped');
+            obj.StatePub = ros2publisher(obj.ROS2Node, 'uav_state', 'std_msgs/Float64MultiArray');
             
-            % 创建订阅器 - 接收加速度和偏航角指令
-            obj.CmdSub = ros2subscriber(obj.ROS2Node, 'uav_cmd', 'geometry_msgs/Accel', @(src,msg)obj.CmdCallback(src,msg));
+            % 创建订阅器 - 接收加速度和偏航角指令(4维数组)
+            obj.CmdSub = ros2subscriber(obj.ROS2Node, 'uav_cmd', 'std_msgs/Float64MultiArray', @(src,msg)obj.CmdCallback(src,msg));
         end
         
-        function CmdCallback(obj, src, msg)
-            % 指令回调函数
-            obj.CmdData.ax = msg.linear.x;
-            obj.CmdData.ay = msg.linear.y;
-            obj.CmdData.az = msg.linear.z;
-            obj.CmdData.psi_d = msg.angular.z;
+        function CmdCallback(obj, ~, msg)
+            % 指令回调函数(4维数组：ax, ay, az, psi_d)
+            obj.CmdData.ax = msg.data(1);
+            obj.CmdData.ay = msg.data(2);
+            obj.CmdData.az = msg.data(3);
+            obj.CmdData.psi_d = msg.data(4);
         end
         
         function PublishState(obj)
-            % 发布无人机状态(不使用四元数，直接发布欧拉角)
+            % 发布无人机状态(12+1维数组，前12个为状态，最后1个为时间戳)
             msg = ros2message(obj.StatePub);
             
-            % 位置
-            msg.pose.position.x = obj.States.x;
-            msg.pose.position.y = obj.States.y;
-            msg.pose.position.z = obj.States.z;
-            
-            % 姿态 - 直接使用欧拉角(phi, theta, psi)
-            msg.pose.orientation.x = obj.States.phi;
-            msg.pose.orientation.y = obj.States.theta;
-            msg.pose.orientation.z = obj.States.psi;
-            msg.pose.orientation.w = 0; % 未使用
-            
-            % 在header中附加速度和角速度信息
-            msg.header.frame_id = sprintf('%.6f,%.6f,%.6f,%.6f,%.6f,%.6f', ...
-                obj.States.dx, obj.States.dy, obj.States.dz, ...
-                obj.States.w_x, obj.States.w_y, obj.States.w_z);
+            % 12个状态量
+            msg.data = [obj.States.x, obj.States.y, obj.States.z, ...
+                       obj.States.phi, obj.States.theta, obj.States.psi, ...
+                       obj.States.dx, obj.States.dy, obj.States.dz, ...
+                       obj.States.w_x, obj.States.w_y, obj.States.w_z, ...
+                       now]; %#ok<TNOW1>
             
             send(obj.StatePub, msg);
         end
