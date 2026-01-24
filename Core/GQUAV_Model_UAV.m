@@ -15,9 +15,17 @@ classdef GQUAV_Model_UAV < handle
     %   lambda_y    -   11.y方向旋转阻力系数
     %   lambda_z    -   12.z方向旋转阻力系数
     %   g           -   13.重力加速度
+    %
+    %   ROS2功能：
+    %   StatePub    -   发布器，发布无人机状态(位置、速度、姿态、角速度)
+    %   CmdSub      -   订阅器，接收加速度指令(ax,ay,az)和期望偏航角(psi_d)
     properties
         Params
         States
+        StatePub
+        CmdSub
+        CmdData
+        ROS2Node
     end
 
     methods
@@ -60,6 +68,9 @@ classdef GQUAV_Model_UAV < handle
             obj.States.w_x = states_init(10);
             obj.States.w_y = states_init(11);
             obj.States.w_z = states_init(12);
+            
+            % 初始化ROS2节点
+            obj.InitROS2();
         end
 
         function UpdateState(obj,Omega_1,Omega_2,Omega_3,Omega_4,t,dt)
@@ -116,6 +127,67 @@ classdef GQUAV_Model_UAV < handle
             obj.States.phi = new_states(10);
             obj.States.theta = new_states(11);
             obj.States.psi = new_states(12);
+            
+            % 发布状态信息
+            obj.PublishState();
+        end
+        
+        function InitROS2(obj)
+            % 初始化ROS2节点
+            obj.CmdData.ax = 0;
+            obj.CmdData.ay = 0;
+            obj.CmdData.az = 0;
+            obj.CmdData.psi_d = 0;
+            
+            % 创建ROS2节点
+            obj.ROS2Node = ros2node('uav_node');
+            
+            % 创建发布器 - 发布无人机状态
+            obj.StatePub = ros2publisher(obj.ROS2Node, 'uav_state', 'geometry_msgs/PoseStamped');
+            
+            % 创建订阅器 - 接收加速度和偏航角指令
+            obj.CmdSub = ros2subscriber(obj.ROS2Node, 'uav_cmd', 'geometry_msgs/Accel', @(src,msg)obj.CmdCallback(src,msg));
+        end
+        
+        function CmdCallback(obj, src, msg)
+            % 指令回调函数
+            obj.CmdData.ax = msg.linear.x;
+            obj.CmdData.ay = msg.linear.y;
+            obj.CmdData.az = msg.linear.z;
+            obj.CmdData.psi_d = msg.angular.z;
+        end
+        
+        function PublishState(obj)
+            % 发布无人机状态(不使用四元数，直接发布欧拉角)
+            msg = ros2message(obj.StatePub);
+            
+            % 位置
+            msg.pose.position.x = obj.States.x;
+            msg.pose.position.y = obj.States.y;
+            msg.pose.position.z = obj.States.z;
+            
+            % 姿态 - 直接使用欧拉角(phi, theta, psi)
+            msg.pose.orientation.x = obj.States.phi;
+            msg.pose.orientation.y = obj.States.theta;
+            msg.pose.orientation.z = obj.States.psi;
+            msg.pose.orientation.w = 0; % 未使用
+            
+            % 在header中附加速度和角速度信息
+            msg.header.frame_id = sprintf('%.6f,%.6f,%.6f,%.6f,%.6f,%.6f', ...
+                obj.States.dx, obj.States.dy, obj.States.dz, ...
+                obj.States.w_x, obj.States.w_y, obj.States.w_z);
+            
+            send(obj.StatePub, msg);
+        end
+        
+        function ShutdownROS2(obj)
+            % 关闭ROS2节点
+            if ~isempty(obj.ROS2Node)
+                delete(obj.ROS2Node);
+                obj.ROS2Node = [];
+                obj.StatePub = [];
+                obj.CmdSub = [];
+            end
         end
     end
 end
