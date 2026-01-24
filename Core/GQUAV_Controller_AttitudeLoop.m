@@ -4,7 +4,7 @@ function w_d=GQUAV_Controller_AttitudeLoop(eta_d,eta_d_dot,eta)
 %   输出机体坐标系下应达到的角速度w_d
     err = eta_d - eta;
     % 控制参数
-    K_eta = diag([5,5,5]); % 应设计为正定的
+    K_eta = diag([3,3,3]); % 应设计为正定的
 
     % 控制律
     [~,W_inv]=GQUAV_Utils_W(eta(1),eta(2),eta(3));

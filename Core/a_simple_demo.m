@@ -5,15 +5,8 @@ T = 10;
 %% 控制参数
 freq_pos = 20;      % 位置环控制频率 (Hz)
 freq_att = 100;    % 姿态环控制频率 (Hz)
-freq_spd = 1000;    % 角速度环控制频率 (Hz)
-ifdiff = 1;        % 是否计算导数
-
-% 期望输入
-ax = 1;
-ay = 0;
-az = 0;
-psi_d = 0.5;
-
+freq_rate = 1000;    % 角速度环控制频率 (Hz)
+ifdiff = 0;        % 是否计算导数
 %% 初始化
 tspan = 0:dt:T;
 N = length(tspan);
@@ -21,8 +14,9 @@ N = length(tspan);
 UAV1 = GQUAV_Model_UAV();
 state = zeros(12,N);
 
-u = zeros(4,N);     % 期望输入
-u = [2*cos(tspan);2*sin(tspan+pi/4);0.5*ones(1,N);0.5*ones(1,N)];
+% 期望输入
+%u = [2*cos(tspan);2*sin(tspan+pi/4);0.5*ones(1,N);0.5*ones(1,N)];
+u = [[0.1;0.2;0.5;0.5].*ones(4,(N-1)/2),[0;0;0;-0.5].*ones(4,N-(N-1)/2)];
 eta_d = zeros(3,N); % 期望姿态
 eta_d_dot_rec = zeros(3,N); % 期望姿态导数
 force_d = zeros(1,N);   % 期望升力
@@ -35,11 +29,11 @@ for k = 1:N
     %% 位置环（外层输入）
     if mod(tspan(k),1/freq_pos) == 0
         % 位置环的控制输入
-        %u(:,k) = [ax;ay;az;psi_d];
         % 数据准备
         m = 1.65;
         % 控制量
         [phi_d,theta_d] = GQUAV_Controller_ComputeAttitude(u(1,k),u(2,k),u(3,k),u(4,k));
+        psi_d = u(4,k);
         eta_d(:,k) = [phi_d;theta_d;psi_d];
         force_d(k) = GQUAV_Controller_ComputeThrust(u(1,k),u(2,k),u(3,k),m);
         % 计算导数
@@ -66,7 +60,7 @@ for k = 1:N
         w_d(:,k) = w_d(:,k-1);
     end
     %% 角速度环
-    if mod(tspan(k),1/freq_spd) == 0
+    if mod(tspan(k),1/freq_rate) == 0
         % 数据准备
         J = diag([15.50e-3,15.50e-3,3.30e-2]);
         w = [UAV1.States.w_x;UAV1.States.w_y;UAV1.States.w_z];  % 直接测量
