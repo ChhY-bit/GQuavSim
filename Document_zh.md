@@ -81,6 +81,11 @@
     <span style="color: green;">States.dx</span>, <span style="color: green;">States.dy</span>, <span style="color: green;">States.dz</span>
   5. 机体角速度信息：$(\omega_x,\omega_y,\omega_z)$，部分文献也记作$(p,q,r)$
     <span style="color: green;">States.w_x</span>, <span style="color: green;">States.w_y</span>, <span style="color: green;">States.w_z</span>
+- <span style="color: red;">obj.StatePub</span>
+- <span style="color: red;">obj.CmdSub</span>
+- <span style="color: red;">obj.CmdData</span>
+- <span style="color: red;">obj.ROS2Node</span>
+- <span style="color: red;">obj.LatestCmdMsg</span>
 
 ##### 方法
 - <span style="color: red;">GQUAV_Model_UAV(Init)</span>
@@ -233,6 +238,21 @@ $$ 矩阵E**满秩**且元素均为1或-1，具体形式与电机旋转方向及
 
 仿真环境类文件主要负责与ROS2的联合协同。
 
+#### 3.3.1 GQUAV_Environment_AccPsi
+- <span style="color: blue;">GQUAV_Environment_AccPsi.m</span> 是一个MATLAB程序文件
+- 运行该程序，相当于启动了一台以**加速度-偏航角**为控制输入的虚拟“无人机”：
+  - 创建ROS2节点：<span style="color: green;>"> /uav_node </span>
+  - 包含2个话题：
+    - <span style="color: green;>"> /uav_cmd </span>: 消息类型为std_msgs/Float64MultiArray，为4维数组，表示$x,y,z$加速度及偏航角$\psi_d$.
+    - <span style="color: green;>"> /uav_state </span>: 消息类型为std_msgs/Float64MultiArray，为12+1维数组，表示$x,y,z$位置、姿态角$\phi,\theta,\psi$、速度$\dot{x},\dot{y},\dot{z}$、角速度$\omega_x,\omega_y,\omega_z$以及时间戳。
+- 当控制程序也通过m文件执行时，应当采用并行方式parfeval()
+- 可调参数：
+  - 姿态环控制频率（约100 Hz）
+  - 角速度环控制频率 （约1000 Hz）
+  - 仿真时间步长 dt（约1e-4 s）
+  - 机体质量（估计值）m：开环计算，缺少闭环
+  - 惯性张量（估计值）J：开环计算，有角速度的闭环
+  <span style="color: purple;"> *注意：内环控制器的参数应在相应m文件中修改* </span>
 ### 3.4 辅助功能类
 #### 3.4.1 GQUAV_Utils_rotx.m
 - <span style="color: blue;">GQUAV_Utils_rotx.m</span> 是一个MATLAB函数文件
