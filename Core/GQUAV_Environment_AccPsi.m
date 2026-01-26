@@ -20,7 +20,7 @@ dt = 1e-4;
 freq_pub = 100;      % 发布频率 (Hz)
 freq_att = 100;    % 姿态环控制频率 (Hz)
 freq_rate = 1000;    % 角速度环控制频率 (Hz)
-ifdiff = 1;        % 是否计算导数
+ifdiff = 0;        % 是否计算导数
 %% 初始化
 k = 0;  % 标记仿真步数
 UAV1 = GQUAV_Model_UAV();
