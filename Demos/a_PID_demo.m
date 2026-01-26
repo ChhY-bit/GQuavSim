@@ -9,9 +9,9 @@ Interface = GQUAV_Environment_Interface();           % 创建交互接口
 GQUAV_Environment_Check(SimEnv,Interface);          % 验证是否成功
 %% 控制过程
 % ----- 控制目标 -----
-x = @(t)10;
-y = @(t)10;
-z = @(t)10;
+x = @(t)3;
+y = @(t)3;
+z = @(t)3;
 psi = -0.9;
 % -------------------
 % ----- PID参数 -----
