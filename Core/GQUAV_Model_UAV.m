@@ -82,6 +82,12 @@ classdef GQUAV_Model_UAV < handle
             %   Omega_3     -   3号电机转速
             %   Omega_4     -   4号电机转速
             %   dt          -   仿真时间步长
+
+            % 转速限幅
+            Omega_1 = min(3000,Omega_1);
+            Omega_2 = min(3000,Omega_2);
+            Omega_3 = min(3000,Omega_3);
+            Omega_4 = min(3000,Omega_4);
             it = obj.Params;
             % 分配矩阵：
             B = diag([it.C_A,...

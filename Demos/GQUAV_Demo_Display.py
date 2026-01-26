@@ -24,7 +24,7 @@ class UAVStateDisplay(Node):
         self.msg_count = 0
 
         # 数据缓冲区（存储最近500个点）
-        self.buffer_size = 500
+        self.buffer_size = 200
         self.time_buffer = deque(maxlen=self.buffer_size)
         self.x_buffer = deque(maxlen=self.buffer_size)
         self.y_buffer = deque(maxlen=self.buffer_size)
@@ -38,6 +38,9 @@ class UAVStateDisplay(Node):
         self.wx_buffer = deque(maxlen=self.buffer_size)
         self.wy_buffer = deque(maxlen=self.buffer_size)
         self.wz_buffer = deque(maxlen=self.buffer_size)
+        self.ax_buffer = deque(maxlen=self.buffer_size)
+        self.ay_buffer = deque(maxlen=self.buffer_size)
+        self.az_buffer = deque(maxlen=self.buffer_size)
 
         # ROS2订阅者
         self.state_sub = self.create_subscription(
@@ -87,23 +90,23 @@ class UAVStateDisplay(Node):
         plt.rcParams['axes.unicode_minus'] = False
 
         plt.style.use('seaborn-darkgrid')
-        self.fig, self.axes = plt.subplots(3, 4, figsize=(16, 9))
+        self.fig, self.axes = plt.subplots(3, 5, figsize=(20, 9))
         self.fig.suptitle('UAV State Real-time Monitor', fontsize=16, fontweight='bold')
 
         # 线条对象
         self.lines = []
-        colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A']
+        colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8']
 
         # 状态名称和单位
         state_info = [
-            ['X Position (m)', 'X Velocity vx (m/s)', 'Roll phi (rad)', 'Angular Rate wx (rad/s)'],
-            ['Y Position (m)', 'Y Velocity vy (m/s)', 'Pitch theta (rad)', 'Angular Rate wy (rad/s)'],
-            ['Z Position (m)', 'Z Velocity vz (m/s)', 'Yaw psi (rad)', 'Angular Rate wz (rad/s)']
+            ['X Position (m)', 'X Velocity vx (m/s)', 'Roll phi (rad)', 'Angular Rate wx (rad/s)', 'Acceleration ax (m/s²)'],
+            ['Y Position (m)', 'Y Velocity vy (m/s)', 'Pitch theta (rad)', 'Angular Rate wy (rad/s)', 'Acceleration ay (m/s²)'],
+            ['Z Position (m)', 'Z Velocity vz (m/s)', 'Yaw psi (rad)', 'Angular Rate wz (rad/s)', 'Acceleration az (m/s²)']
         ]
 
         # 创建子图
         for i in range(3):
-            for j in range(4):
+            for j in range(5):
                 ax = self.axes[i, j]
                 line, = ax.plot([], [], linewidth=2, color=colors[j])
                 self.lines.append(line)
@@ -122,11 +125,33 @@ class UAVStateDisplay(Node):
 
         time_data = np.array(self.time_buffer)
 
-        # 更新12条曲线
+        # 计算加速度（速度的差分）
+        vx_data = np.array(self.vx_buffer)
+        vy_data = np.array(self.vy_buffer)
+        vz_data = np.array(self.vz_buffer)
+
+        if len(vx_data) >= 2:
+            dt = np.diff(time_data[-len(vx_data):])
+            ax_data = np.diff(vx_data) / dt
+            ay_data = np.diff(vy_data) / dt
+            az_data = np.diff(vz_data) / dt
+
+            # 添加移动平均滤波
+            window_size = 5
+            if len(ax_data) >= window_size:
+                ax_data = np.convolve(ax_data, np.ones(window_size)/window_size, mode='valid')
+                ay_data = np.convolve(ay_data, np.ones(window_size)/window_size, mode='valid')
+                az_data = np.convolve(az_data, np.ones(window_size)/window_size, mode='valid')
+
+            self.ax_buffer = deque(ax_data, maxlen=self.buffer_size)
+            self.ay_buffer = deque(ay_data, maxlen=self.buffer_size)
+            self.az_buffer = deque(az_data, maxlen=self.buffer_size)
+
+        # 更新15条曲线
         buffers = [
-            self.x_buffer, self.vx_buffer, self.phi_buffer, self.wx_buffer,
-            self.y_buffer, self.vy_buffer, self.theta_buffer, self.wy_buffer,
-            self.z_buffer, self.vz_buffer, self.psi_buffer, self.wz_buffer
+            self.x_buffer, self.vx_buffer, self.phi_buffer, self.wx_buffer, self.ax_buffer,
+            self.y_buffer, self.vy_buffer, self.theta_buffer, self.wy_buffer, self.ay_buffer,
+            self.z_buffer, self.vz_buffer, self.psi_buffer, self.wz_buffer, self.az_buffer
         ]
 
         for i, (line, buffer) in enumerate(zip(self.lines, buffers)):
@@ -135,7 +160,7 @@ class UAVStateDisplay(Node):
                 line.set_data(time_data[-len(y_data):], y_data)
 
                 # 动态调整坐标轴范围
-                ax = self.axes[i // 4, i % 4]
+                ax = self.axes[i // 5, i % 5]
                 ax.set_xlim(time_data[0], time_data[-1] + 0.1)
                 y_min, y_max = np.min(y_data), np.max(y_data)
 

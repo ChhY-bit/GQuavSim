@@ -11,7 +11,7 @@ function params = GQUAV_Model_GetDefaultParams()
     params(9) = 0.00e-5;    %   Jxz        -   9.  xz轴互惯量
     params(10) = 0.00e-5;   %   Jyz        -   10. yz轴互惯量
     % ---------- 扰动因素 ----------
-    params(11) = 6.00e-5;   %   Jr         -   11. 翼桨惯量
+    params(11) = 0.00e-5;   %   Jr         -   11. 翼桨惯量
     params(12) = 0.0;      %   mu_x       -   12. x方向平移阻力系数
     params(13) = 0.0;      %   mu_y       -   13. y方向平移阻力系数
     params(14) = 0.0;      %   mu_z       -   14. z方向平移阻力系数
