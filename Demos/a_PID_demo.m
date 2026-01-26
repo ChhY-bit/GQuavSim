@@ -1,6 +1,6 @@
 clear,clc
 %% 参数设置
-T = 20;         % 仿真持续时间(s)
+T = 60;         % 仿真持续时间(s)
 freq_ctr = 20;  % 控制频率(Hz)
 %% 仿真准备
 addpath(genpath('../Core'));
@@ -9,15 +9,29 @@ Interface = GQUAV_Environment_Interface();           % 创建交互接口
 GQUAV_Environment_Check(SimEnv,Interface);          % 验证是否成功
 %% 控制过程
 % ----- 控制目标 -----
-x = @(t)3;
-y = @(t)3;
+% 正方形轨迹：边长2，中心为原点，速度1m/s
+L = 2;  % 边长
+v = 1;  % 速度
+T_side = L/v;  % 每边耗时
+
+x = @(t)squeeze( ...
+    (mod(t,4*T_side) < T_side) .* L/2 + ...
+    (mod(t,4*T_side) >= T_side & mod(t,4*T_side) < 2*T_side) .* (L/2 - v*(mod(t,4*T_side) - T_side)) + ...
+    (mod(t,4*T_side) >= 2*T_side & mod(t,4*T_side) < 3*T_side) .* (-L/2) + ...
+    (mod(t,4*T_side) >= 3*T_side) .* (-L/2 + v*(mod(t,4*T_side) - 3*T_side)) );
+
+y = @(t)squeeze( ...
+    (mod(t,4*T_side) < T_side) .* (L/2 - v*mod(t,4*T_side)) + ...
+    (mod(t,4*T_side) >= T_side & mod(t,4*T_side) < 2*T_side) .* (-L/2) + ...
+    (mod(t,4*T_side) >= 2*T_side & mod(t,4*T_side) < 3*T_side) .* (-L/2 + v*(mod(t,4*T_side) - 2*T_side)) + ...
+    (mod(t,4*T_side) >= 3*T_side) .* L/2 );
 z = @(t)3;
-psi = -0.9;
+psi = @(t)0.5;
 % -------------------
 % ----- PID参数 -----
-Kp = 1.2*[1;1;1];
+Kp = 1.5*[1;1;1];
 Ki = 0*[1;1;1];
-Kd = 1.2*[1.35;1.35;1.5];
+Kd = 1.5*[1.35;1.35;1.5];
 % ------------------
 % ----- 控制初始化 -----
 u = [0;0;0;0];
@@ -40,7 +54,7 @@ while toc(t_start) < T
     % 加速度限幅（正负5）
     %u(1:3) = max(min(u_temp, 5), -5);
     u(1:3) = u_temp;
-    u(4) = psi;
+    u(4) = psi(t);
     % 执行
     Interface.Control(u);
     % 更新历史误差
