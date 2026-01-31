@@ -57,13 +57,10 @@ classdef GQUAV_Environment_Interface < handle
 
             % 注意：在并行环境中，回调可能不工作，使用LatestMessage方式轮询
             % 这与环境文件GQUAV_Environment_AccPsi.m中的处理方式一致
-            latest_msg = [];
             try
                 latest_msg = obj.StateSub.LatestMessage;
                 if ~isempty(latest_msg)
                     obj.LatestStateMsg = latest_msg;
-                else
-                    fprintf('LatestMessage为空，等待数据...\n');
                 end
             catch ME
                 fprintf('轮询LatestMessage失败: %s\n', ME.message);
@@ -96,16 +93,6 @@ classdef GQUAV_Environment_Interface < handle
 
             % 检查数据长度
             if length(state_data) < 12
-                fprintf('警告: 接收到的状态数据长度不足（当前: %d，期望: >=12）\n', length(state_data));
-                fprintf('state_data类型: %s\n', class(state_data));
-                fprintf('state_data大小: %s\n', mat2str(size(state_data)));
-                fprintf('state_data内容: %s\n', mat2str(state_data));
-
-                % 检查是否是初始化的空消息
-                if length(state_data) == 1 && state_data(1) == 0
-                    fprintf('可能是初始化的空消息，请检查是否成功接收到ROS2消息\n');
-                end
-
                 if length(state_data) >= 1
                     feedback = [state_data(1); 0; 0; 0; 0; 0];
                     return;

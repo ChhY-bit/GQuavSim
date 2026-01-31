@@ -7,17 +7,17 @@ function params = GQUAV_Model_GetDefaultParams()
     params(5) = 15.50e-3;   %   Jxx        -   5.  x主轴惯量
     params(6) = 15.50e-3;   %   Jyy        -   6.  y主轴惯量
     params(7) = 3.30e-2;    %   Jzz        -   7.  z主轴惯量
-    params(8) = 0.00e-5;    %   Jxy        -   8.  xy轴互惯量
-    params(9) = 0.00e-5;    %   Jxz        -   9.  xz轴互惯量
-    params(10) = 0.00e-5;   %   Jyz        -   10. yz轴互惯量
+    params(8) = 8.00e-5;    %   Jxy        -   8.  xy轴互惯量
+    params(9) = 8.00e-5;    %   Jxz        -   9.  xz轴互惯量
+    params(10) = 7.00e-5;   %   Jyz        -   10. yz轴互惯量
     % ---------- 扰动因素 ----------
-    params(11) = 0.00e-5;   %   Jr         -   11. 翼桨惯量
-    params(12) = 0.0;      %   mu_x       -   12. x方向平移阻力系数
-    params(13) = 0.0;      %   mu_y       -   13. y方向平移阻力系数
-    params(14) = 0.0;      %   mu_z       -   14. z方向平移阻力系数
-    params(15) = 0.0;      %   lambda_x   -   15. x方向旋转阻力系数
-    params(16) = 0.0;      %   lambda_y   -   16. y方向旋转阻力系数
-    params(17) = 0.0;      %   lambda_z   -   17. z方向旋转阻力系数
+    params(11) = 100.00e-5;   %   Jr         -   11. 翼桨惯量
+    params(12) = 0.1;      %   mu_x       -   12. x方向平移阻力系数
+    params(13) = 0.1;      %   mu_y       -   13. y方向平移阻力系数
+    params(14) = 0.1;      %   mu_z       -   14. z方向平移阻力系数
+    params(15) = 0.1;      %   lambda_x   -   15. x方向旋转阻力系数
+    params(16) = 0.1;      %   lambda_y   -   16. y方向旋转阻力系数
+    params(17) = 0.1;      %   lambda_z   -   17. z方向旋转阻力系数
     % ---------- -------- ----------
-    params(18) = 9.81;      %   g          -   18. 重力加速度
+    params(18) = 9.5;      %   g          -   18. 重力加速度
 end
