@@ -94,6 +94,7 @@ while(1)
     end
     % 更新
     UAV1.UpdateState(omg1,omg2,omg3,omg4,k,dt);
+    % disp([omg1;omg2;omg3;omg4]);    % debug
     %% 实时同步：等待真实时间达到仿真时间
     t_real = toc(t_start);
     if t_real < (k+1)*dt

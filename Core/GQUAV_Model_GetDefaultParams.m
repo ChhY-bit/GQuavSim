@@ -19,5 +19,5 @@ function params = GQUAV_Model_GetDefaultParams()
     params(16) = 0.1;      %   lambda_y   -   16. y方向旋转阻力系数
     params(17) = 0.1;      %   lambda_z   -   17. z方向旋转阻力系数
     % ---------- -------- ----------
-    params(18) = 9.5;      %   g          -   18. 重力加速度
+    params(18) = 9.81;      %   g          -   18. 重力加速度
 end

@@ -107,20 +107,25 @@ classdef GQUAV_Model_UAV < handle
             J = obj.Params.J;
             lambda = diag([it.lambda_x,it.lambda_y,it.lambda_z]);
             % 动态方程
+            if obj.States.z <= 0
+                N = 10000 * obj.Params.m * obj.States.z + 200 * obj.Params.m * obj.States.dz;    % 模拟地面支持力
+            else
+                N = 0;
+            end
             Jxx = obj.Params.J(1,1); Jyy = obj.Params.J(2,2); Jzz = obj.Params.J(3,3);
             Omega_r = Omega_1-Omega_2+Omega_3-Omega_4;
             Lambda = @(w)[0,-it.J_r*Omega_r-Jzz*w(3),Jyy*w(2);...
                           it.J_r*Omega_r+Jzz*w(3),0,-Jxx*w(1);...
                           -Jyy*w(2),Jxx*w(1),0]-lambda;
-            dynaics = @(dp,w,eta,tau)...
+            dynamics = @(dp,w,eta,tau)...
                 [dp;... % \dot{p}
-                 (mu*dp-[0;0;it.m*it.g]+GQUAV_Utils_R(eta(1),eta(2),eta(3))*[0;0;tau(1)])/it.m;... % \ddot{p}
+                 (mu*dp-[0;0;it.m*it.g+N]+GQUAV_Utils_R(eta(1),eta(2),eta(3))*[0;0;tau(1)])/it.m;... % \ddot{p}
                  J\(Lambda(w)*w+tau(2:4));... % \dot{\omega}
                  GQUAV_Utils_W(eta(1),eta(2),eta(3))*w]; % \dot{\eta}
             %% 状态更新
             x = [p;dp;w;eta];
             u = tau;
-            fun = @(x,u,t)dynaics(x(4:6),x(7:9),x(10:12),u);
+            fun = @(x,u,t)dynamics(x(4:6),x(7:9),x(10:12),u);
             new_states=GQUAV_Utils_UpdateRK4(fun,x,u,t,dt);
             obj.States.x = new_states(1);
             obj.States.y = new_states(2);
