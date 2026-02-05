@@ -14,6 +14,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from collections import deque
 import time
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+import os
 
 
 class UAV3DDisplay(Node):
@@ -290,6 +291,7 @@ Messages:  {self.msg_count}"""
 
 
 def main():
+    os.environ['ROS_DOMAIN_ID'] = '33'  # ROS2的ID标志
     rclpy.init()
     display_node = UAV3DDisplay()
     try:

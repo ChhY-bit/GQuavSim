@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from collections import deque
 import time
-
+import os
 
 class UAVStateDisplay(Node):
     def __init__(self):
@@ -212,6 +212,7 @@ class UAVStateDisplay(Node):
 
 
 def main():
+    os.environ['ROS_DOMAIN_ID'] = '33'
     rclpy.init()
     display_node = UAVStateDisplay()
     try:
