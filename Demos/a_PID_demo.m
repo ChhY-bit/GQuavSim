@@ -3,11 +3,12 @@
 % Each module is designed independently, allowing you to add your own custom code.
 % You can edit the code or parameters noted with "***"
 clear,clc
+exprname = 'PID_demo';   % 实验名称
 %% 参数设置
 % *** 仿真持续时间(s) ***
-T = 60;
+T = 10;
 % *** 控制频率(Hz) ***
-global freq_ctr
+global freq_ctr %#ok<*GVMIS>
 freq_ctr = 20;
 %% 仿真准备
 % 导入核心库
@@ -29,10 +30,9 @@ GQUAV_Environment_Check(SimEnv,Interface);
 tspan = 0:1/freq_ctr:T;
 N = length(tspan);
 u = [0;0;0;0];
-data.u = zeros(4,N);
-data.t_u = zeros(1,N);
-data.states = zeros(12,N);
-data.t_s = zeros(1,N);
+exprdata.u = zeros(4,N);
+exprdata.states = zeros(12,N);
+exprdata.tspan = 0:1/freq_ctr:T;
 % *** BEGIN: 用户初始化 ***
 % 此处用于定义用户的初始化代码，如轨迹生成、控制所需中间变量等
 TrajGen = GQUAV_Utils_TrajGen(tspan);   % 初始化轨迹生成器
@@ -40,7 +40,7 @@ global last_err last_last_err last_u
 last_err = [0;0;0];
 last_last_err = [0;0;0];
 last_u = [0;0;0];       % PID中间变量
-global x y z psi %#ok<*GVMIS>
+global x y z psi
 [x,y,z] = TrajGen.SpiralTraj(1,1,1,0.1,0.5,1); % 生成螺旋轨迹
 psi = 0.5*ones(N,1);    % 偏航角
 % *** END: 用户初始化 ***
@@ -50,14 +50,12 @@ rate = ros2rate(Interface.ROS2Node,freq_ctr);   % 用于实时时间同步
 for k = 1:N
     % 1) 反馈
     [time_msr,feedback] = Interface.Measure();
-    data.states(:,k) = feedback;    % 记录状态信息
-    data.t_s(k) = time_msr;         % 记录状态时间戳
+    exprdata.states(:,k) = feedback;    % 记录状态信息
     % 2) 控制（计算、规划）
     u = CustomController(feedback,k);
     % 3) 执行
     time_ctr = Interface.Control(u);    
-    data.u(:,k) = u;                % 记录控制信息
-    data.t_u(k) = time_ctr;         % 记录控制时间戳
+    exprdata.u(:,k) = u;                % 记录控制信息
     % 4) 同步
     waitfor(rate);
 end
@@ -69,10 +67,10 @@ if ~exist('../ExperimentData', 'dir')
     mkdir('../ExperimentData');
 end
 % 生成包含时间的文件名
-saving_time = datestr(now, 'yyyymmdd_HHMMSS');
-filename = fullfile('../ExperimentData', ['PID_demo_data_', saving_time, '.mat']);
+exprtime = datestr(now, 'yyyymmdd_HHMMSS');
+filename = fullfile('../ExperimentData', [exprname,'_data_', exprtime, '.mat']);
 % 保存数据
-save(filename, 'data', '-v7.3');
+save(filename, 'exprdata', 'exprname', 'exprtime', '-v7.3');
 fprintf('\n实验数据已保存至: %s\n', filename);
 %% *** 自定义控制器 ***
 % 此处用于定义控制器的具体形式，并在循环中被调用
