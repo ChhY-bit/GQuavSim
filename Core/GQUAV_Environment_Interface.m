@@ -30,23 +30,28 @@ classdef GQUAV_Environment_Interface < handle
             obj.StateSub = ros2subscriber(obj.ROS2Node, 'uav_state', 'std_msgs/Float64MultiArray', @(src,msg)obj.StateCallback(src,msg));
         end
 
-        function Control(obj, u)
+        function ctr_timestamp = Control(obj, u)
             % 发布控制指令到ROS2话题 'uav_cmd'
             %   参数说明:
             %   u   - 4维数组，含义因控制方式而异
             %         常用含义: [ax, ay, az, psi_d]
-            
+            %   返回值:
+            %   ctrl_timestamp - 控制指令的时间戳（秒）
+
             % 创建ROS2消息
             msg = ros2message(obj.CmdPub);
-            
+
             % 设置4维控制数组
             msg.data = u;
-            
+
+            % 获取当前时间戳
+            ctr_timestamp = now;
+
             % 发布消息
             send(obj.CmdPub, msg);
         end
         
-        function feedback = Measure(obj)
+        function [msr_timestamp, feedback] = Measure(obj)
             % 获取无人机位置信息
             %   返回值:
             %   feedback   - 包含位置信息的结构体
@@ -104,8 +109,10 @@ classdef GQUAV_Environment_Interface < handle
             % TODO：测量的真实性（噪声、延时等的引入）
             measured_data = state_data;
 
-            % 构建反馈信息（返回前6个：x, y, z, phi, theta, psi）
-            feedback = measured_data(1:6);
+            % 构建反馈信息（返回前12个：x, y, z, phi, theta, psi, dx, dy, dz, wx, wy, wz）
+            feedback = measured_data(1:12);
+            % 构建时间戳
+            msr_timestamp = state_data(end);
         end
         
         function StateCallback(obj, ~, msg)

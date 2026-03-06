@@ -29,6 +29,10 @@ GQUAV_Environment_Check(SimEnv,Interface);
 tspan = 0:1/freq_ctr:T;
 N = length(tspan);
 u = [0;0;0;0];
+data.u = zeros(4,N);
+data.t_u = zeros(1,N);
+data.states = zeros(12,N);
+data.t_s = zeros(1,N);
 % *** BEGIN: 用户初始化 ***
 % 此处用于定义用户的初始化代码，如轨迹生成、控制所需中间变量等
 TrajGen = GQUAV_Utils_TrajGen(tspan);   % 初始化轨迹生成器
@@ -45,16 +49,31 @@ fprintf('开始控制，持续时间: %.2f (s)\n',T);
 rate = ros2rate(Interface.ROS2Node,freq_ctr);   % 用于实时时间同步
 for k = 1:N
     % 1) 反馈
-    feedback = Interface.Measure();
-    % 2) 控制
+    [time_msr,feedback] = Interface.Measure();
+    data.states(:,k) = feedback;    % 记录状态信息
+    data.t_s(k) = time_msr;         % 记录状态时间戳
+    % 2) 控制（计算、规划）
     u = CustomController(feedback,k);
     % 3) 执行
-    Interface.Control(u);
+    time_ctr = Interface.Control(u);    
+    data.u(:,k) = u;                % 记录控制信息
+    data.t_u(k) = time_ctr;         % 记录控制时间戳
     % 4) 同步
     waitfor(rate);
 end
 fprintf('控制过程结束\n');
 GQUAV_Environment_Close(SimEnv,Interface);
+%% 保存实验数据
+% 创建ExperimentData文件夹（如果不存在）
+if ~exist('../ExperimentData', 'dir')
+    mkdir('../ExperimentData');
+end
+% 生成包含时间的文件名
+saving_time = datestr(now, 'yyyymmdd_HHMMSS');
+filename = fullfile('../ExperimentData', ['PID_demo_data_', saving_time, '.mat']);
+% 保存数据
+save(filename, 'data', '-v7.3');
+fprintf('\n实验数据已保存至: %s\n', filename);
 %% *** 自定义控制器 ***
 % 此处用于定义控制器的具体形式，并在循环中被调用
 % 输入
