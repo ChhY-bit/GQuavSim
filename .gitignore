@@ -1,6 +1,11 @@
 # MATLAB files
+*.mat
 *.mex*
 *.asv
+
+# Experiment data
+ExperimentData/
+
 
 # Python files
 __pycache__/
