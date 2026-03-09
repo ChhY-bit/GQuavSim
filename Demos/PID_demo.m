@@ -3,7 +3,7 @@
 % Each module is designed independently, allowing you to add your own custom code.
 % You can edit the code or parameters noted with "***"
 clear,clc
-exprname = 'PID_demo2';   % 实验名称
+exprname = 'PID_demo';   % 实验名称
 %% 参数设置
 % *** 仿真持续时间(s) ***
 T = 30;
@@ -87,7 +87,7 @@ function u = CustomController(feedback,k)
     % PID参数
     Kp = 1.5*[1;1;1];
     Ki = 0*[1;1;1];
-    Kd = 0.8*[1.35;1.35;1.5];
+    Kd = 1.5*[1.35;1.35;1.5];
 % *** 核心部分 ****
     err = [x(k);y(k);z(k)] - feedback(1:3); % 获取误差
     du = Kp.* (err - last_err) + ...
