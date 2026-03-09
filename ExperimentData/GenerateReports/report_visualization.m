@@ -20,6 +20,8 @@ ylabel_tag_states = {'$x\;\mathrm{(m)}$','$y\;\mathrm{(m)}$','$z\;\mathrm{(m)}$'
               '$\dot{\phi}\;\mathrm{(rad)}$','$\dot{\theta}\;\mathrm{(rad)}$','$\dot{\psi}\;\mathrm{(rad)}$'};
 ylabel_tag_input = {'$\ddot{x}\;\mathrm{(m/s^2)}$','$\ddot{y}\;\mathrm{(m/s^2)}$',...
                     '$\ddot{z}\;\mathrm{(m/s^2)}$','$\psi\;\mathrm{(rad})$'};
+
+color_tag = {'r','b','g','m','c','y'};
 for expr_id = 1:expr_num
     %% 绘制状态变量
     % 位置
@@ -28,7 +30,7 @@ for expr_id = 1:expr_num
     for k = [1,7,2,8,3,9]
         subplot(3,2,i)
         plot(experiment{expr_id}.exprdata.tspan,experiment{expr_id}.exprdata.states(k,:),...
-             'DisplayName',experiment{expr_id}.exprname)
+             'DisplayName',experiment{expr_id}.exprname,'Color',color_tag{expr_id},'LineWidth',1.5)
         hold on
         legend('Location','best')
         ylabel(ylabel_tag_states{k})
@@ -42,7 +44,7 @@ for expr_id = 1:expr_num
     for k = [4,10,5,11,6,12]
         subplot(3,2,i)
         plot(experiment{expr_id}.exprdata.tspan,experiment{expr_id}.exprdata.states(k,:),...
-             'DisplayName',experiment{expr_id}.exprname)
+             'DisplayName',experiment{expr_id}.exprname,'Color',color_tag{expr_id},'LineWidth',1.5)
         hold on
         legend('Location','best')
         ylabel(ylabel_tag_states{k})
@@ -55,7 +57,7 @@ for expr_id = 1:expr_num
     for k = 1:3
         subplot(3,1,k)
         stairs(experiment{expr_id}.exprdata.tspan,experiment{expr_id}.exprdata.u(k,:),...
-            'DisplayName',experiment{expr_id}.exprname)
+            'DisplayName',experiment{expr_id}.exprname,'Color',color_tag{expr_id},'LineWidth',1.5)
         hold on
         legend('Location','best')
         ylabel(ylabel_tag_input{k})
@@ -67,7 +69,7 @@ for expr_id = 1:expr_num
     plot3(experiment{expr_id}.exprdata.states(1,:),...
           experiment{expr_id}.exprdata.states(2,:),...
           experiment{expr_id}.exprdata.states(3,:),...
-          'DisplayName',experiment{expr_id}.exprname)
+          'DisplayName',experiment{expr_id}.exprname,'Color',color_tag{expr_id},'LineWidth',1.5)
     xlabel('$x\;\mathrm{(m)}$')
     ylabel('$y\;\mathrm{(m)}$')
     zlabel('$z\;\mathrm{(m)}$')
@@ -77,7 +79,34 @@ for expr_id = 1:expr_num
     legend('Location','best')
 end
 
-%% 保存所有图形
-report_save_figure();
+%% 参考量对比：
+u_ref = experiment{1}.exprdata.u_r;
+x_ref = experiment{1}.exprdata.xi_r;
+tspan = experiment{1}.exprdata.tspan;
+N = length(tspan);
+% 位置：
+figure(1)
+i = 1;
+for k = 1:6
+    subplot(3,2,i)
+    plot(tspan,x_ref(k,1:N),'k--','DisplayName','Reference','LineWidth',1.5)
+    hold on
+    legend('Location','best')
+    i = i+1;
+end
 
+% 输入：
+figure(3)
+for k = 1:3
+    subplot(3,1,k)
+    stairs(tspan,u_ref(k,1:N),'k--','DisplayName','Reference','LineWidth',1.5)
+    hold on
+    legend('Location','best')
+end
+
+figure(4)
+plot3(x_ref(1,1:N),x_ref(3,1:N),x_ref(5,1:N),'k--','DisplayName','Reference','LineWidth',1.5)
+legend('Location','best')
+%% 保存所有图形
+% report_save_figure();
 
